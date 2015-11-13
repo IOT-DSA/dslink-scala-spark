@@ -1,4 +1,4 @@
-# dslink-scala-spark
+# sdk-dslink-scala-spark
 
 A Scala-based DSLink implementation for Apache Spark.
 
