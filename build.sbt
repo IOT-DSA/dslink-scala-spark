@@ -10,7 +10,7 @@ val SPARK_VERSION = "1.5.1"
 
 // settings
 
-name := "dslink-scala-spark"
+name := "sdk-dslink-scala-spark"
 
 organization := "com.uralian"
 
@@ -30,12 +30,6 @@ libraryDependencies ++= Seq(
   "org.iot-dsa"         % "dslink"                  % DSA_VERSION
   		exclude("org.slf4j", "*")
   		exclude("io.netty", "*"),
-//  "org.iot-dsa"         % "logging"                 % DSA_VERSION
-//  		exclude("org.slf4j", "*"),
-//  "org.iot-dsa"         % "runtime_shared"          % DSA_VERSION
-//  		exclude("org.slf4j", "*"),
-//  "com.beust"           % "jcommander"              % "1.48",
-//  "org.bouncycastle"    % "bcprov-jdk15on"          % "1.51",  
   "org.scalatest"      %% "scalatest"               % "2.2.1"         % "test",
   "org.scalacheck"     %% "scalacheck"              % "1.12.1"        % "test"  
 )
