@@ -1,0 +1,46 @@
+{
+	"name":"spark-dslink-java",
+	"version":"0.0.1-SNAPSHOT",
+	"description":"Spark DSLink",
+	"license":"Apache",
+	"author":{
+		"name":"Vlad Orzhekhovskiy",
+		"email":"vlad@uralian.com"
+	},
+	"main":"bin/spark-dslink-scala",
+	"repository":{
+		"type":"git",
+		"url":"https://github.com/IOT-DSA/spark-dslink-scala"
+	},
+	"bugs":{
+		"url":"https://github.com/IOT-DSA/spark-dslink-scala/issues"
+	},
+	"configs":{
+		"name":{
+			"type":"string",
+			"default":"spark"
+		},
+		"broker":{
+			"type":"url"
+		},
+		"token":{
+			"type":"string"
+		},
+		"nodes":{
+			"type":"path",
+			"default":"nodes.json"
+		},
+		"key":{
+			"type":"path",
+			"default":".key"
+		},
+		"log":{
+			"type":"enum",
+			"default":"info"
+		},
+		"handler_class":{
+			"type":"string",
+			"default":"org.dsa.iot.spark.DSAConnector$"
+		}		
+	}
+}
