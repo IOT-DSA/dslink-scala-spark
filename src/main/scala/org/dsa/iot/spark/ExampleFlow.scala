@@ -15,7 +15,7 @@ object ExampleFlow extends App {
 
   val log = LoggerFactory.getLogger(getClass)
 
-  protected lazy val sc = new SparkContext("local[*]", "dslink-test")
+  protected lazy val sc = new SparkContext("local[*]", "dslink-batch-test")
   protected lazy val ssc = new StreamingContext(sc, Seconds(2))
 
   val stream1 = ssc.receiverStream(new DSAReceiver(
