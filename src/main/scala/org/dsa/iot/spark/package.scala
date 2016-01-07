@@ -26,9 +26,27 @@ package object spark {
   def valueToAny(value: Value): Any = value.getType.toJsonString match {
     case ValueType.JSON_BOOL   => value.getBool
     case ValueType.JSON_NUMBER => value.getNumber
-    case ValueType.JSON_MAP    => value.getMap.getMap.asScala
-    case ValueType.JSON_ARRAY  => value.getArray.getList.asScala.toList
+    case ValueType.JSON_MAP    => jsonObjectToMap(value.getMap)
+    case ValueType.JSON_ARRAY  => jsonArrayToList(value.getArray)
     case _                     => value.getString
+  }
+
+  /**
+   * Converts a JsonArray instance into a scala List[Any].
+   */
+  def jsonArrayToList(arr: JsonArray): List[Any] = arr.getList.asScala.toList map {
+    case x: JsonArray  => jsonArrayToList(x)
+    case x: JsonObject => jsonObjectToMap(x)
+    case x             => x
+  }
+
+  /**
+   * Converts a JsonObject instance into a scala Map[String, Any].
+   */
+  def jsonObjectToMap(obj: JsonObject): Map[String, Any] = obj.getMap.asScala.toMap mapValues {
+    case x: JsonArray  => jsonArrayToList(x)
+    case x: JsonObject => jsonObjectToMap(x)
+    case x             => x
   }
 
   /**
@@ -39,9 +57,33 @@ package object spark {
     case x: java.lang.Number => new Value(x)
     case x: Boolean          => new Value(x)
     case x: String           => new Value(x)
-    case x: Map[_, _]        => new Value(new JsonObject(x.asInstanceOf[Map[String, Object]].asJava))
-    case x: List[_]          => new Value(new JsonArray(x.asJava))
+    case x: Map[_, _]        => new Value(mapToJsonObject(x.asInstanceOf[Map[String, _]])) 
+    case x: List[_]          => new Value(listToJsonArray(x))
     case x @ _               => new Value(x.toString)
+  }
+
+  /**
+   * Converts a scala List[Any] instance into a JsonArray.
+   */
+  def listToJsonArray(ls: List[_]): JsonArray = {
+    val elements = ls map {
+      case x: List[_]   => listToJsonArray(x)
+      case x: Map[_, _] => mapToJsonObject(x.asInstanceOf[Map[String, Any]])
+      case x            => x
+    }
+    new JsonArray(elements.asJava)
+  }
+
+  /**
+   * Converts a scala Map[String, Any] instance into a JsonObject.
+   */
+  def mapToJsonObject(mp: Map[String, _]): JsonObject = {
+    val elements = mp.mapValues {
+      case x: List[_]   => listToJsonArray(x)
+      case x: Map[_, _] => mapToJsonObject(x.asInstanceOf[Map[String, Any]])
+      case x            => x.asInstanceOf[Object]
+    }
+    new JsonObject(elements.asJava)
   }
 
   /*
