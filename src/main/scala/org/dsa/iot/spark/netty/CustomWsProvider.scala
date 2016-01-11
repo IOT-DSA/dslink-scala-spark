@@ -1,10 +1,16 @@
 package org.dsa.iot.spark.netty
 
 import java.net.{ URI, URISyntaxException }
-import scala.util.control.NonFatal
+
+import scala.util.Try
+
+import org.dsa.iot.dslink.connection.NetworkClient
 import org.dsa.iot.dslink.provider.WsProvider
 import org.dsa.iot.dslink.util.http.WsClient
+import org.dsa.iot.dslink.util.json.{ EncodingFormat, JsonObject }
 import org.dsa.iot.shared.SharedObjects
+import org.slf4j.LoggerFactory
+
 import io.netty.bootstrap.Bootstrap
 import io.netty.buffer.Unpooled
 import io.netty.channel._
@@ -15,12 +21,13 @@ import io.netty.handler.codec.http.websocketx._
 import io.netty.handler.ssl.SslContextBuilder
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory
 import io.netty.util.CharsetUtil
-import util.Try
 
 /**
  * WS Provider implementation.
  */
 class CustomWsProvider extends WsProvider {
+
+  private val LOGGER = LoggerFactory.getLogger(getClass)
 
   override def connect(client: WsClient) = {
     if (client == null)
@@ -62,8 +69,7 @@ class CustomWsProvider extends WsProvider {
   /**
    * Handles Web Socket connection events.
    */
-  private[netty] class WebSocketHandler(var handshake: WebSocketClientHandshaker,
-                                        client: WsClient)
+  private[netty] class WebSocketHandler(var handshake: WebSocketClientHandshaker, client: WsClient)
       extends SimpleChannelInboundHandler[Object] {
 
     var handshakeFuture: ChannelPromise = null
@@ -90,23 +96,33 @@ class CustomWsProvider extends WsProvider {
 
         handshake.finishHandshake(ch, msg.asInstanceOf[FullHttpResponse])
         handshake = null
-
-        client.onConnected(new WsProvider.Writer {
-          def write(data: String) = {
-            val bytes = Try(data.getBytes("UTF-8")) recover {
-              case NonFatal(e) => throw new RuntimeException(e)
-            } get
-            val buf = Unpooled.wrappedBuffer(bytes)
-            val frame = new TextWebSocketFrame(buf)
-            ctx.channel().writeAndFlush(frame)
-          }
-
-          def close() = ctx.close
-        })
         if (handshakeFuture != null) {
           handshakeFuture.setSuccess
           handshakeFuture = null
         }
+
+        client.onConnected(new NetworkClient {
+
+          def writable = ch.isWritable
+
+          def write(format: EncodingFormat, data: JsonObject) = {
+            val bytes = data.encode(format)
+            val buf = Unpooled.wrappedBuffer(bytes)
+            val frame = if (format == EncodingFormat.MESSAGE_PACK)
+              new BinaryWebSocketFrame(buf)
+            else if (format == EncodingFormat.JSON)
+              new TextWebSocketFrame(buf)
+            else {
+              LOGGER.error(s"Unsupported encoding format: $format")
+              null
+            }
+            if (frame != null) ch.writeAndFlush(frame)
+          }
+
+          def close = ctx.close
+
+          def isConnected = ch.isOpen
+        })
       } else {
 
         if (msg.isInstanceOf[FullHttpResponse]) {
@@ -117,10 +133,17 @@ class CustomWsProvider extends WsProvider {
         }
 
         val frame = msg.asInstanceOf[WebSocketFrame]
-        if (frame.isInstanceOf[TextWebSocketFrame]) {
-          val textFrame = frame.asInstanceOf[TextWebSocketFrame]
-          val data = textFrame.text
-          client.onData(data)
+        if (frame.isInstanceOf[TextWebSocketFrame] || frame.isInstanceOf[BinaryWebSocketFrame]) {
+          val content = frame.content
+          val length = content.readableBytes
+          val (bytes, offset) = if (content.hasArray) {
+            (content.array, content.arrayOffset)
+          } else {
+            val buffer = new Array[Byte](length)
+            content.readBytes(buffer)
+            (buffer, 0)
+          }
+          client.onData(bytes, offset, length)
         } else if (frame.isInstanceOf[PingWebSocketFrame]) {
           val buf = frame.content().retain
           val pong = new PongWebSocketFrame(buf)

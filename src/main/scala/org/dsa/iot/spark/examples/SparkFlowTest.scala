@@ -1,21 +1,21 @@
-package org.dsa.iot.spark
+package org.dsa.iot.spark.examples
 
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD.rddToPairRDDFunctions
 import org.apache.spark.streaming.{ Seconds, StreamingContext }
 import org.apache.spark.streaming.dstream.DStream.toPairDStreamFunctions
 import org.apache.spark.util.StatCounter
-import org.slf4j.LoggerFactory
+import org.dsa.iot.spark.{ DSAConnector, DSAHelper, DSAReceiver, toDouble }
 
 /**
  * An sample flow using DSA Receiver.
  */
-object ExampleFlow extends App {
-  import DSAConnector._
+object SparkFlowTest extends App {
 
-  val log = LoggerFactory.getLogger(getClass)
+  implicit val requester = DSAConnector.requesterLink.getRequester
+  implicit val responder = DSAConnector.responderLink.getResponder
 
-  protected lazy val sc = new SparkContext("local[*]", "dslink-batch-test")
+  protected lazy val sc = new SparkContext("local[*]", "dslink-stream-test")
   protected lazy val ssc = new StreamingContext(sc, Seconds(2))
 
   val stream1 = ssc.receiverStream(new DSAReceiver(
@@ -29,7 +29,7 @@ object ExampleFlow extends App {
     (x._1.stripPrefix("/downstream/System/"), x._3)
   }
 
-  val aggregates = combined mapValues toDouble window (10 seconds) transform { rdd =>
+  val aggregates = combined mapValues toDouble window (Seconds(10)) transform { rdd =>
     rdd.aggregateByKey(new StatCounter)(_ merge _, _ merge _)
   }
 
@@ -37,13 +37,13 @@ object ExampleFlow extends App {
 
   aggregates foreachRDD (_ foreach {
     case (name, stats) =>
-      updateNode(s"/output/$name/count", stats.count)
-      updateNode(s"/output/$name/mean", stats.mean)
-      updateNode(s"/output/$name/min", stats.min)
-      updateNode(s"/output/$name/max", stats.max)
-      updateNode(s"/output/$name/sum", stats.sum)
-      updateNode(s"/output/$name/variance", stats.variance)
-      updateNode(s"/output/$name/stdev", stats.stdev)
+      DSAHelper updateNode s"/output/$name/count" -> stats.count
+      DSAHelper updateNode s"/output/$name/mean" -> stats.mean
+      DSAHelper updateNode s"/output/$name/min" -> stats.min
+      DSAHelper updateNode s"/output/$name/max" -> stats.max
+      DSAHelper updateNode s"/output/$name/sum" -> stats.sum
+      DSAHelper updateNode s"/output/$name/variance" -> stats.variance
+      DSAHelper updateNode s"/output/$name/stdev" -> stats.stdev
   })
 
   ssc.start

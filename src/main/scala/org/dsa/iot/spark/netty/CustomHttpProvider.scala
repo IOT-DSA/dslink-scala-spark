@@ -24,7 +24,7 @@ import io.netty.util.CharsetUtil
  */
 class CustomHttpProvider extends HttpProvider {
 
-  def post(url: URLInfo, content: String, headers: Map[String, String]): HttpResp = {
+  def post(url: URLInfo, content: Array[Byte], headers: Map[String, String]): HttpResp = {
     if (url == null)
       throw new NullPointerException("url")
 
@@ -46,19 +46,18 @@ class CustomHttpProvider extends HttpProvider {
     }
   }
 
-  private def populateRequest(uri: String, content: String, headers: Map[String, String]): HttpRequest = {
+  private def populateRequest(uri: String, content: Array[Byte], headers: Map[String, String]): HttpRequest = {
     val request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, uri)
     val buf = request.content
-    if (content != null) {
-      val bytes = content.getBytes(CharsetUtil.UTF_8)
-      buf.writeBytes(bytes)
-    }
+    if (content != null)
+      buf.writeBytes(content)
+
     {
       val h = request.headers
       Option(headers) foreach (_.asScala foreach {
         case (name, value) => h.set(name, value)
       })
-      val len = String.valueOf(buf.readableBytes())
+      val len = String.valueOf(buf.readableBytes)
       h.set(HttpHeaders.Names.CONTENT_LENGTH, len)
     }
     request

@@ -41,9 +41,9 @@ class DSAReceiver(val paths: String*)
       requester.subscribe(path, new Handler[SubscriptionValue] {
         def handle(event: SubscriptionValue) = {
           val value = valueToAny(event.getValue)
-          val time = event.getValue.getDate
+          val time = new java.util.Date(event.getValue.getTime)
           val item = (path, time, value)
-          logDebug(s"Received updated: $item")
+          logDebug(s"Received update: $item")
           store(item)
         }
       })

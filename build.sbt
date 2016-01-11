@@ -4,7 +4,7 @@ val APP_VERSION = "0.2.0-SNAPSHOT"
 
 val SCALA_VERSION = "2.10.5"
 
-val DSA_VERSION = "0.12.0"
+val DSA_VERSION = "0.13.0"
 
 val SPARK_VERSION = "1.5.1"
 
@@ -31,7 +31,9 @@ libraryDependencies ++= Seq(
   "org.apache.spark"   %% "spark-streaming"         % SPARK_VERSION   % "provided",
   "org.iot-dsa"         % "dslink"                  % DSA_VERSION
   		exclude("org.slf4j", "*")
+  		exclude("com.fasterxml.jackson.core", "*")
   		exclude("io.netty", "*"),
+  "io.reactivex"       %% "rxscala"                 % "0.25.1",  		
   "org.scalatest"      %% "scalatest"               % "2.2.1"         % "test",
   "org.scalacheck"     %% "scalacheck"              % "1.12.1"        % "test"  
 )
