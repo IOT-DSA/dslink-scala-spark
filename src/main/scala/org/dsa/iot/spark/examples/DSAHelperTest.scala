@@ -21,7 +21,7 @@ object DSAHelperTest extends App {
 
   // create a new dataflow using Observable
   val flowName1 = UUID.randomUUID().toString
-  val obsCreate = DSAHelper.invoke("/downstream/dataflow/createDataflow", Map("name" -> flowName1))
+  val obsCreate = DSAHelper.invoke("/downstream/dataflow/createDataflow", "name" -> flowName1)
   obsCreate subscribe (
     onNext = _ => {},
     onError = err => println("Error creating a dataflow: " + err),
@@ -87,7 +87,7 @@ object DSAHelperTest extends App {
 
   // create and update own nodes
   val root = responder.getDSLink.getNodeManager.getSuperRoot
-  val outNode = root createChild "out" build ()
+  val outNode = root createChild "out" build
 
   val c1 = outNode createChild "aaaa" display "Aaaa" valueType ValueType.STRING build
 
@@ -97,10 +97,11 @@ object DSAHelperTest extends App {
     DSAHelper updateNode "/out/aaaa" -> Random.nextInt(1000).toString
   })) build
 
-  outNode createChild "setBbbb" display "Update Bbbb" action (createAction(
-    parameters = List("value" -> ValueType.NUMBER),
-    handler = result => {
-      val value = result.getParameter("value").getNumber
-      DSAHelper updateNode "/out/bbbb" -> value
-    })) build
+  outNode createChild "setBbbb" display "Update Bbbb" action (
+    createAction(
+      parameters = List("value" -> ValueType.NUMBER),
+      handler = result => {
+        val value = result.getParameter("value").getNumber
+        DSAHelper updateNode "/out/bbbb" -> value
+      })) build
 }
