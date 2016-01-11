@@ -26,14 +26,15 @@ scalacOptions ++= Seq("-feature", "-unchecked", "-deprecation", "-Xlint",
 run in Compile <<= Defaults.runTask(fullClasspath in Compile, mainClass in (Compile, run), runner in (Compile, run))
 	
 libraryDependencies ++= Seq(
-  "org.slf4j"           % "slf4j-log4j12"           % "1.6.1",
+  "org.slf4j"           % "slf4j-log4j12"           % "1.6.1",    		
   "org.apache.spark"   %% "spark-core"              % SPARK_VERSION   % "provided",
   "org.apache.spark"   %% "spark-streaming"         % SPARK_VERSION   % "provided",
   "org.iot-dsa"         % "dslink"                  % DSA_VERSION
   		exclude("org.slf4j", "*")
+  		exclude("org.iot-dsa", "logging")
   		exclude("com.fasterxml.jackson.core", "*")
   		exclude("io.netty", "*"),
-  "io.reactivex"       %% "rxscala"                 % "0.25.1",  		
+  "io.reactivex"       %% "rxscala"                 % "0.25.1",
   "org.scalatest"      %% "scalatest"               % "2.2.1"         % "test",
   "org.scalacheck"     %% "scalacheck"              % "1.12.1"        % "test"  
 )
