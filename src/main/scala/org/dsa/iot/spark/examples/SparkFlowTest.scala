@@ -5,18 +5,23 @@ import org.apache.spark.rdd.RDD.rddToPairRDDFunctions
 import org.apache.spark.streaming.{ Seconds, StreamingContext }
 import org.apache.spark.streaming.dstream.DStream.toPairDStreamFunctions
 import org.apache.spark.util.StatCounter
-import org.dsa.iot.spark.{ DSAConnector, DSAHelper, DSAReceiver, toDouble }
+import org.dsa.iot.{ DSAHelper, LinkMode }
+import org.dsa.iot.spark.DSAReceiver
 
 /**
  * An sample flow using DSA Receiver.
  */
 object SparkFlowTest extends App {
 
-  implicit val requester = DSAConnector.requesterLink.getRequester
-  implicit val responder = DSAConnector.responderLink.getResponder
+  val connector = createConnector(args)
+  val connection = connector start LinkMode.DUAL
+  implicit val requester = connection.requester
+  implicit val responder = connection.responder
 
   protected lazy val sc = new SparkContext("local[*]", "dslink-stream-test")
   protected lazy val ssc = new StreamingContext(sc, Seconds(2))
+
+  DSAReceiver.setRequester(requester)
 
   val stream1 = ssc.receiverStream(new DSAReceiver(
     "/downstream/System/Memory_Usage",
@@ -29,7 +34,9 @@ object SparkFlowTest extends App {
     (x._1.stripPrefix("/downstream/System/"), x._3)
   }
 
-  val aggregates = combined mapValues toDouble window (Seconds(10)) transform { rdd =>
+  val aggregates = combined mapValues {
+    case x: java.lang.Number => x.doubleValue
+  } window (Seconds(10)) transform { rdd =>
     rdd.aggregateByKey(new StatCounter)(_ merge _, _ merge _)
   }
 

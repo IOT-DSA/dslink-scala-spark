@@ -3,8 +3,8 @@ package org.dsa.iot.spark.examples
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import org.apache.spark.SparkContext
+import org.dsa.iot.{ DSAHelper, LinkMode }
 import org.dsa.iot.dslink.node.value.ValueType
-import org.dsa.iot.spark.{ DSAConnector, DSAHelper }
 
 import rx.lang.scala.Observable
 
@@ -13,7 +13,9 @@ import rx.lang.scala.Observable
  */
 object SparkJobTest extends App {
 
-  implicit val requester = DSAConnector.requesterLink.getRequester
+  val connector = createConnector(args)
+  val connection = connector start LinkMode.DUAL
+  implicit val requester = connection.requester
 
   protected lazy val sc = new SparkContext("local[*]", "dslink-batch-test")
 
@@ -28,4 +30,9 @@ object SparkJobTest extends App {
   val rdd = sc parallelize data
 
   rdd foreach println
+
+  Thread.sleep(1000)
+
+  connector.stop
+  System.exit(0)
 }

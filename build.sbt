@@ -4,7 +4,7 @@ val APP_VERSION = "0.3.0-SNAPSHOT"
 
 val SCALA_VERSION = "2.10.5"
 
-val DSA_VERSION = "0.13.0"
+val SCALA_DSA_VERSION = "0.1.0-SNAPSHOT"
 
 val SPARK_VERSION = "1.5.1"
 
@@ -12,11 +12,9 @@ val SPARK_VERSION = "1.5.1"
 
 name := "sdk-dslink-scala-spark"
 
-organization := "com.uralian"
+organization := "org.iot-dsa"
 
 version := APP_VERSION
-
-enablePlugins(JavaAppPackaging)
 
 scalaVersion := SCALA_VERSION
 
@@ -24,17 +22,51 @@ scalacOptions ++= Seq("-feature", "-unchecked", "-deprecation", "-Xlint",
 	"-Ywarn-dead-code", "-language:_", "-target:jvm-1.7", "-encoding", "UTF-8")
 
 run in Compile <<= Defaults.runTask(fullClasspath in Compile, mainClass in (Compile, run), runner in (Compile, run))
+
+// scoverage options
+
+coverageMinimum := 80
+coverageFailOnMinimum := true
+
+// publishing options
+
+publishMavenStyle := true
+publishTo := {
+  val nexus = "https://oss.sonatype.org/"
+  if (isSnapshot.value)
+    Some("snapshots" at nexus + "content/repositories/snapshots")
+  else
+    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+}
+pomIncludeRepository := { _ => false }
+pomExtra := (
+  <url>https://github.com/IOT-DSA/sdk-dslink-scala-spark</url>
+  <licenses>
+    <license>
+      <name>The Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <scm>
+    <url>scm:git:https://github.com/IOT-DSA/sdk-dslink-scala-spark.git</url>
+    <connection>scm:git:git@github.com:IOT-DSA/sdk-dslink-scala-spark.git</connection>
+  </scm>
+  <developers>
+    <developer>
+      <id>snark</id>
+      <name>Vlad Orzhekhovskiy</name>
+      <email>vlad@uralian.com</email>
+      <url>http://uralian.com</url>
+    </developer>
+  </developers>)
 	
 libraryDependencies ++= Seq(
-  "org.slf4j"           % "slf4j-log4j12"           % "1.6.1",    		
   "org.apache.spark"   %% "spark-core"              % SPARK_VERSION   % "provided",
   "org.apache.spark"   %% "spark-streaming"         % SPARK_VERSION   % "provided",
-  "org.iot-dsa"         % "dslink"                  % DSA_VERSION
-  		exclude("org.slf4j", "*")
-  		exclude("org.iot-dsa", "logging")
-  		exclude("com.fasterxml.jackson.core", "*")
-  		exclude("io.netty", "*"),
-  "io.reactivex"       %% "rxscala"                 % "0.25.1",
+  "org.iot-dsa"        %% "sdk-dslink-scala"        % SCALA_DSA_VERSION
+  		exclude("com.fasterxml.jackson.core", "*"),   		
   "org.scalatest"      %% "scalatest"               % "2.2.1"         % "test",
-  "org.scalacheck"     %% "scalacheck"              % "1.12.1"        % "test"  
+  "org.scalacheck"     %% "scalacheck"              % "1.12.1"        % "test",
+  "org.mockito"         % "mockito-core"            % "1.10.19"       % "test"  
 )

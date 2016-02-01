@@ -3,10 +3,13 @@ package org.dsa.iot.spark
 import scala.util.control.NonFatal
 
 import org.apache.spark.Logging
-import org.apache.spark.storage.StorageLevel
+import org.apache.spark.storage.StorageLevel.MEMORY_AND_DISK
 import org.apache.spark.streaming.receiver.Receiver
+import org.dsa.iot.TimedValue
+import org.dsa.iot.dslink.link.Requester
 import org.dsa.iot.dslink.node.value.SubscriptionValue
 import org.dsa.iot.dslink.util.handler.Handler
+import org.dsa.iot.valueToAny
 
 /**
  * This class is an implementation of Spark receiver that subscribes to the
@@ -14,8 +17,8 @@ import org.dsa.iot.dslink.util.handler.Handler
  *
  * @author Vlad Orzhekhovskiy
  */
-class DSAReceiver(val paths: String*)
-    extends Receiver[TimedValue](StorageLevel.MEMORY_AND_DISK) with Logging with Runnable {
+class DSAReceiver(val paths: String*) extends Receiver[TimedValue](MEMORY_AND_DISK) with Logging with Runnable {
+  import DSAReceiver._
 
   require(!paths.isEmpty, "at least one path should be present")
   require(paths.toSet.size == paths.size, "duplicate path found")
@@ -34,7 +37,8 @@ class DSAReceiver(val paths: String*)
    * Subscribes to updates from the DSA and forwards them to Spark engine.
    */
   def run() = try {
-    val requester = DSAConnector.requesterLink.getRequester
+    require(requester != null, "Requester not set, use DSAReceiver.setRequester")
+
     paths foreach { path =>
       logInfo(s"Subscribing to path $path")
 
@@ -51,4 +55,13 @@ class DSAReceiver(val paths: String*)
   } catch {
     case NonFatal(e) => restart("error receiving data", e)
   }
+}
+
+/**
+ * Provides the requester object.
+ */
+object DSAReceiver {
+  @transient private var requester: Requester = null
+
+  def setRequester(requester: Requester) = { this.requester = requester }
 }
