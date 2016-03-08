@@ -1,7 +1,6 @@
 package org.dsa.iot.spark
 
 import scala.util.control.NonFatal
-
 import org.apache.spark.Logging
 import org.apache.spark.storage.StorageLevel.MEMORY_AND_DISK
 import org.apache.spark.streaming.receiver.Receiver
@@ -10,6 +9,7 @@ import org.dsa.iot.dslink.link.Requester
 import org.dsa.iot.dslink.node.value.SubscriptionValue
 import org.dsa.iot.dslink.util.handler.Handler
 import org.dsa.iot.valueToAny
+import scala.util.Try
 
 /**
  * This class is an implementation of Spark receiver that subscribes to the
@@ -31,7 +31,9 @@ class DSAReceiver(val paths: String*) extends Receiver[TimedValue](MEMORY_AND_DI
   /**
    * Called by the framework, does nothing.
    */
-  def onStop() {}
+  def onStop() = paths foreach { path =>
+    requester.unsubscribe(path, null)
+  }
 
   /**
    * Subscribes to updates from the DSA and forwards them to Spark engine.
@@ -45,7 +47,7 @@ class DSAReceiver(val paths: String*) extends Receiver[TimedValue](MEMORY_AND_DI
       requester.subscribe(path, new Handler[SubscriptionValue] {
         def handle(event: SubscriptionValue) = {
           val value = valueToAny(event.getValue)
-          val time = new java.util.Date(event.getValue.getTime)
+          val time = Try(new java.util.Date(event.getValue.getTime)).getOrElse(new java.util.Date)
           val item = (path, time, value)
           logDebug(s"Received update: $item")
           store(item)
