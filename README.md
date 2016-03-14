@@ -1,5 +1,8 @@
 # sdk-dslink-scala-spark
 
+![alt tag](https://travis-ci.org/IOT-DSA/sdk-dslink-scala-spark.svg?branch=master)
+![Coverage Status](https://coveralls.io/repos/github/IOT-DSA/sdk-dslink-scala-spark/badge.svg)
+
 A Scala-based DSLink implementation for Apache Spark.
 
 ## Features
