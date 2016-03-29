@@ -1,22 +1,32 @@
 language: scala
 
 scala:
- - "2.10.5"
+- 2.11.7
  
 jdk:
- - oraclejdk8
+- oraclejdk8
  
-branches:
- only:
-  - master
-  
 notifications:
- email:
-  recipients:
-   - vlad@uralian.com
-   
-script:
- - sbt clean coverage test
- 
-after_success: 
- - sbt coveralls
+  email:
+    recipients:
+    - vlad@uralian.com
+
+install: /bin/true
+
+script: sbt +clean +test
+
+cache:
+  directories:
+  - $HOME/.ivy2
+
+env:
+  global:
+    secure: FDfHRgvR6w3FDr0v1mviqrtxDfIgDmmMtLYT+nN+B2mqmg72rj4zRY99gViLh0p+gRcbvozlP/m6IdT7L/D64vjoLewXDX5+Hy5Km9cUYo4cbaRiK7BHEjU25/GjIaXayW/XaSbWQMRzlFbrSUc5WmQcUaBSUKp9t7cmRqL14dV/uKyGHDEoOmEX3upPhXDx9JqG1P1M/pUotLK++a68uHSgDwFf3uJ+UqoNgxirEksu1ynIe8r4x3UqqvzEijqG4T3C11PEEjYtbaVtavOtBGpGka3dSCQekQy8EFmyCATAbgjB5nHtPyHqFlpk9P+c+3NzR6t4a0JM9wCDi7j87sZt4Gy3ADNahS5fsQXcmRLoHAbtyn2FnvIXSA9UO2alVkxx3vmCOB0H+sqCMMIjTo1iwhbuHgRrUe8bfwvz5PGPEXE5hCy2j32MDAJ/TAZsPferi62ZULxtRlQpHoZ9lcNrX1HBJNP14GfetIxDx9k2JObeEHuogBIMSvFRRn1KugVgy87+Uevsz533H/R59GZiizW0YFybTRkhUHCagkgegQUJOl9GljiE1dNMu3YsZyyT8RXNrrdZXp8xCjtmNk6E0NisQNlWa1cQb+P/SWuvpeECi+ZYv/yO5YYs1CuqQKXAur0Zl5Jc+587ONpoH8uLMCTUrcFNHabEzU42aLY=
+
+before_install:
+- openssl aes-256-cbc -pass pass:$ENCRYPTION_PASSWORD -in ci/secring.gpg.enc -out local.secring.gpg -d
+- openssl aes-256-cbc -pass pass:$ENCRYPTION_PASSWORD -in ci/pubring.gpg.enc -out local.pubring.gpg -d
+- openssl aes-256-cbc -pass pass:$ENCRYPTION_PASSWORD -in ci/credentials.sbt.enc -out local.credentials.sbt -d
+
+after_success:
+  - "[[ $TRAVIS_BRANCH == \"master\" ]] && { sbt +publishSigned; };"
