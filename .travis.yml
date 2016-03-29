@@ -2,10 +2,10 @@ language: scala
 
 scala:
 - 2.11.7
- 
+
 jdk:
 - oraclejdk8
- 
+
 notifications:
   email:
     recipients:
@@ -21,7 +21,7 @@ cache:
 
 env:
   global:
-    secure: FDfHRgvR6w3FDr0v1mviqrtxDfIgDmmMtLYT+nN+B2mqmg72rj4zRY99gViLh0p+gRcbvozlP/m6IdT7L/D64vjoLewXDX5+Hy5Km9cUYo4cbaRiK7BHEjU25/GjIaXayW/XaSbWQMRzlFbrSUc5WmQcUaBSUKp9t7cmRqL14dV/uKyGHDEoOmEX3upPhXDx9JqG1P1M/pUotLK++a68uHSgDwFf3uJ+UqoNgxirEksu1ynIe8r4x3UqqvzEijqG4T3C11PEEjYtbaVtavOtBGpGka3dSCQekQy8EFmyCATAbgjB5nHtPyHqFlpk9P+c+3NzR6t4a0JM9wCDi7j87sZt4Gy3ADNahS5fsQXcmRLoHAbtyn2FnvIXSA9UO2alVkxx3vmCOB0H+sqCMMIjTo1iwhbuHgRrUe8bfwvz5PGPEXE5hCy2j32MDAJ/TAZsPferi62ZULxtRlQpHoZ9lcNrX1HBJNP14GfetIxDx9k2JObeEHuogBIMSvFRRn1KugVgy87+Uevsz533H/R59GZiizW0YFybTRkhUHCagkgegQUJOl9GljiE1dNMu3YsZyyT8RXNrrdZXp8xCjtmNk6E0NisQNlWa1cQb+P/SWuvpeECi+ZYv/yO5YYs1CuqQKXAur0Zl5Jc+587ONpoH8uLMCTUrcFNHabEzU42aLY=
+    secure: OcsK5YAuhbsex29F28IlajlpdaieBJ0FTKG/QkZ4qM7J9FoFHXUFjuc7uUN8zxxsLxchtRypggRN6wZVNymGg2NKK5c9WBCR9xaDFFir7pRk4yyFP+miDKQAHsnUjhwqWCFX3hkU5hRVZ7AJV1QjdcOAGcSz7I0fyvXuOOJIlfOu+yQh7TD0izXoYumnrxNpZNpP+oBZlLa732yNuS53wbznU7cyJDlL6/HhqfHUl6aqopy96E9pyjWbSPRjFPkrcBURv1c188D/V5FNbWr8zPngyaWxfsw//MWmbF+wi8tdCRw5SVnsxDobR/GmiicoiGPnpYLLggm2yxII1I3RhGWiNAxBvk8r/whVfCfFJO2rc6cZO8dG1EWzJ5U7J659Owy68LKPcm3KEpfzI6vULAjSwinTinkVEzIqSPvjj1HJaj6T+Bukeeac42ngPDbh0Se65Hpgzo5gkhU1JIPU5lNintdP3jIhNCMSBSvdxXNKIUxWpJNfzSbLqwR9QTBGDIL3vXvdSWfbLBsv+iVCEZjWpIdn7qOeqIrNG923IFUM0bIQnjjb2UJ6x+/x2y/dA9N2bQwYnK3Ptfu1OWY0WTcBXyEbuc4hUWijUs9FzmE6DzJtmyHrQ/ZWXh2FOSGXTmL2w00e7QPp+neVl5qmgU4VMMapxLJi19R55BGcCsg=
 
 before_install:
 - openssl aes-256-cbc -pass pass:$ENCRYPTION_PASSWORD -in ci/secring.gpg.enc -out local.secring.gpg -d
@@ -29,4 +29,4 @@ before_install:
 - openssl aes-256-cbc -pass pass:$ENCRYPTION_PASSWORD -in ci/credentials.sbt.enc -out local.credentials.sbt -d
 
 after_success:
-  - "[[ $TRAVIS_BRANCH == \"master\" ]] && { sbt +publishSigned; };"
+- '[[ $TRAVIS_BRANCH == "master" ]] && { sbt +publishSigned; };'
